@@ -79,6 +79,29 @@ export default {
   })
 }
 ```
+如果模块带有命名空间，则当获取带有命名空间模块的状态时可以在mapState的第一个参数传入模块名称：
+
+``` js
+// 在单独构建的版本中辅助函数为 Vuex.mapState
+import { mapState } from 'vuex'
+
+export default {
+  // ...
+  // 获取带命名空间的模块moduleName的state
+  computed: mapState('moduleName', {
+    // 箭头函数可使代码更简练
+    count: state => state.count,
+
+    // 传字符串参数 'count' 等同于 `state => state.count`
+    countAlias: 'count',
+
+    // 为了能够使用 `this` 获取局部状态，必须使用常规函数
+    countPlusLocalState (state) {
+      return state.count + this.localCount
+    }
+  })
+}
+```
 
 当映射的计算属性的名称与 state 的子节点名称相同时，我们也可以给 `mapState` 传一个字符串数组。
 
@@ -88,7 +111,13 @@ computed: mapState([
   'count'
 ])
 ```
-
+同理，可以传递模块名称作为第一个参数获取带命名空间模块的state：
+``` js
+computed: mapState('moduleName', [
+  // 映射 this.count 为 store.state.count
+  'count'
+])
+```
 ### 对象展开运算符
 
 `mapState` 函数返回的是一个对象。我们如何将它与局部计算属性混合使用呢？通常，我们需要使用一个工具函数将多个对象合并为一个，以使我们可以将最终对象传给 `computed` 属性。但是自从有了[对象展开运算符](https://github.com/sebmarkbage/ecmascript-rest-spread)（现处于 ECMASCript 提案 stage-3 阶段），我们可以极大地简化写法：
@@ -106,3 +135,6 @@ computed: {
 ### 组件仍然保有局部状态
 
 使用 Vuex 并不意味着你需要将**所有的**状态放入 Vuex。虽然将所有的状态放到 Vuex 会使状态变化更显式和易调试，但也会使代码变得冗长和不直观。如果有些状态严格属于单个组件，最好还是作为组件的局部状态。你应该根据你的应用开发需要进行权衡和确定。
+
+### 避免名称冲突
+需要注意的是，Store中的state是计算属性的形式混入到Vue实例上的，根据Vue实例规范，computed属性的名称不能与data属性名称冲突，所以state属性名称也不能与Vue实例自身的data属性名称冲突。
